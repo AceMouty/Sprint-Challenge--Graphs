@@ -28,6 +28,7 @@ player = Player(world.starting_room)
 
 # Fill this out with directions to walk
 # traversal_path = ['n', 'n']
+traversal_path = []
 def build_path(graph):
     """
     Traverse maze in a DFT.
@@ -74,8 +75,48 @@ def build_path(graph):
     return moves
 
 
-traversal_path = build_path(room_graph)
+# traversal_path = build_path(room_graph)
 
+# move the player
+def player_move(direction):
+    player.travel(direction)
+    traversal_path.append(direction)
+
+# pure DFT traversal
+
+
+def recursive_DFT(visited=None, prev=None, move=None):
+    current = player.current_room.id
+    neighbors = player.current_room.get_exits()
+    reverse = {'n': 's', 's': 'n', 'e': 'w', 'w': 'e'}
+
+    if visited is None:
+        visited = {}
+
+    if current not in visited:
+        visited[current] = {}
+
+    if move is not None:
+        visited[prev][move] = current
+
+    if prev is not None:
+        visited[current][reverse[move]] = prev
+
+    if len(visited[current]) < len(neighbors):
+        for direction in neighbors:
+            if direction not in visited[current]:
+                player_move(direction)
+                recursive_DFT(visited, prev=current, move=direction)
+
+    if len(visited) < len(room_graph):
+        direction = reverse[move]
+        player_move(direction)
+
+
+# recursive_DFT()
+
+
+# print("TRAVERSAL PATH: ", traversal_path)
 # TRAVERSAL TEST
 visited_rooms = set()
 player.current_room = world.starting_room
@@ -96,13 +137,12 @@ else:
 #######
 # UNCOMMENT TO WALK AROUND
 #######
-# player.current_room.print_room_description(player)
-# breakpoint()
-# while True:
-#     cmds = input("-> ").lower().split(" ")
-#     if cmds[0] in ["n", "s", "e", "w"]:
-#         player.travel(cmds[0], True)
-#     elif cmds[0] == "q":
-#         break
-#     else:
-#         print("I did not understand that command.")
+player.current_room.print_room_description(player)
+while True:
+    cmds = input("-> ").lower().split(" ")
+    if cmds[0] in ["n", "s", "e", "w"]:
+        player.travel(cmds[0], True)
+    elif cmds[0] == "q":
+        break
+    else:
+        print("I did not understand that command.")
